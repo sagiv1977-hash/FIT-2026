@@ -66,8 +66,9 @@
         const HistoryIcon = (props) => <Icon name="History" {...props} />;
         const Target = (props) => <Icon name="Target" {...props} />;
         const AlertTriangle = (props) => <Icon name="AlertTriangle" {...props} />;
+        const X = (props) => <Icon name="X" {...props} />;
 
-        const WeightTrackerComponent = ({ exId, weightLogs, onAddLog }) => {
+        const WeightTrackerComponent = ({ exId, weightLogs, onAddLog, onDeleteLog }) => {
             const [dateInput, setDateInput] = useState(new Date().toISOString().split('T')[0]);
             const [weightInput, setWeightInput] = useState('');
             const logs = weightLogs[exId] || [];
@@ -100,7 +101,6 @@
                             type="button"
                             onClick={handleAdd}
                             className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-3 rounded-xl flex items-center justify-center transition-colors shrink-0 shadow-md font-bold"
-                            aria-label="הוסף משקל"
                         >
                             <Plus size={20} />
                         </button>
@@ -112,13 +112,22 @@
                                 <HistoryIcon size={14} /> היסטוריית התקדמות
                             </h4>
                             
-                            <div className="max-h-24 overflow-y-auto pr-1 custom-scrollbar mb-3">
+                            <div className="max-h-32 overflow-y-auto pr-1 custom-scrollbar mb-3">
                                 <table className="w-full text-sm text-right">
                                     <tbody>
                                         {logs.map((log, i) => (
                                             <tr key={i} className="border-b border-slate-50 last:border-0">
                                                 <td className="py-1.5 text-slate-600">{new Date(log.date).toLocaleDateString('he-IL')}</td>
-                                                <td className="py-1.5 font-black text-blue-700" dir="ltr">{log.weight} kg</td>
+                                                <td className="py-1.5 font-black text-blue-700 text-center" dir="ltr">{log.weight} kg</td>
+                                                <td className="py-1.5 text-left">
+                                                    <button 
+                                                        onClick={() => onDeleteLog(exId, i)}
+                                                        className="text-red-400 hover:text-red-600 p-1 transition-colors"
+                                                        title="מחק רישום"
+                                                    >
+                                                        <X size={16} strokeWidth={3} />
+                                                    </button>
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -281,8 +290,17 @@
                 if (!weight) return;
                 setWeightLogs(prev => {
                     const currentLogs = prev[exId] || [];
-                    const newLogs = [...currentLogs, { date, weight: parseFloat(weight) }];
+                    const newLogs = [{ date, weight: parseFloat(weight) }, ...currentLogs];
+                    // המערכת כבר ממיינת לפי תאריך ב-latest log logic, אבל פה נשמור על סדר כרונולוגי הפוך להצגה
                     newLogs.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    return { ...prev, [exId]: newLogs };
+                });
+            };
+
+            const handleDeleteWeightLog = (exId, index) => {
+                setWeightLogs(prev => {
+                    const currentLogs = prev[exId] || [];
+                    const newLogs = currentLogs.filter((_, i) => i !== index);
                     return { ...prev, [exId]: newLogs };
                 });
             };
@@ -372,7 +390,6 @@
                                 style={{ transform: `translateX(-${currentExIndex * 100}%)` }} 
                             >
                                 {exercises.map((ex, index) => (
-                                    /* הוספתי פס גלילה מובנה פה לכל שקף שמציג גם את כל אזור התחתית מבלי לחתוך אותו */
                                     <div key={ex.id} className="w-full flex-shrink-0 h-full overflow-y-auto custom-scrollbar" dir="rtl">
                                         <div className="max-w-lg mx-auto p-4 pb-16">
                                             <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden block">
@@ -406,6 +423,7 @@
                                                                 exId={ex.id}
                                                                 weightLogs={weightLogs}
                                                                 onAddLog={handleAddWeightLog}
+                                                                onDeleteLog={handleDeleteWeightLog}
                                                             />
                                                         )}
                                                     </div>
