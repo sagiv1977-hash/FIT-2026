@@ -20,11 +20,11 @@
         }
         .animation-fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .hide-scroll::-webkit-scrollbar { display: none; }
-        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        /* פס גלילה מותאם אישית שיהיה גלוי תמיד גם בדסקטופ */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 m-0 p-0 overflow-x-hidden">
@@ -79,7 +79,7 @@
             };
 
             return (
-                <div className="flex flex-col w-full gap-3 pb-8">
+                <div className="flex flex-col w-full gap-3 pt-2 pb-4">
                     <div className="flex items-center gap-2 w-full">
                         <input 
                             type="date" 
@@ -210,7 +210,7 @@
                                 // סבב 2
                                 { id: "s1_4", targetHe: "חלק תחתון", targetEn: "Lower Body", name: "מכרעים לאחור", desc: "צעד לאחור עם כפיפת ברכיים ל-90 מעלות.", duration: "3 סטים | 10 לכל רגל", img: "https://images.unsplash.com/photo-1588286840104-b43b67e0e7a2?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=reverse+lunges" },
                                 { id: "s1_5", targetHe: "חלק עליון (גב)", targetEn: "Upper Body", name: "חתירה בכפיפה", desc: "משיכת משקולות/גומיה לכיוון המותן בעמידה שפופה.", duration: "3 סטים | 12 חזרות", img: "https://images.unsplash.com/photo-1598289431512-b97b0917affc?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=bent+over+row" },
-                                { id: "s1_6", targetHe: "בטן", targetEn: "Core", name: "הרמת רגליים בשכיבה", desc: "שכיבה על הגב והרמת שתי רגליים ישרות עד 90 מעלות וירידה איטית.", duration: "3 סטים | 15 חזרות", img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=lying+leg+raises" },
+                                { id: "s1_6", targetHe: "בטן", targetEn: "Core", name: "הרמת רגליים בשכיבה", desc: "שכיבה על הגב, הרמת שתי רגליים ישרות עד 90 מעלות וירידה איטית מבלי לגעת ברצפה.", duration: "3 סטים | 15 חזרות", img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=lying+leg+raises" },
                                 // סבב 3
                                 { id: "s1_7", targetHe: "חלק תחתון", targetEn: "Lower Body", name: "דדליפט רומני (RDL)", desc: "התכופפות מהאגן עם גב ישר וברכיים כפופות קלות.", duration: "3 סטים | 10 חזרות", img: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=romanian+deadlift+dumbbells" },
                                 { id: "s1_8", targetHe: "חלק עליון (כתפיים)", targetEn: "Upper Body", name: "לחיצת כתפיים", desc: "דחיפת משקולות מעל הראש.", duration: "3 סטים | 10 חזרות", img: "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=dumbbell+shoulder+press" },
@@ -372,9 +372,10 @@
                                 style={{ transform: `translateX(-${currentExIndex * 100}%)` }} 
                             >
                                 {exercises.map((ex, index) => (
-                                    <div key={ex.id} className="w-full flex-shrink-0 h-full overflow-y-auto hide-scroll pb-16" dir="rtl">
-                                        <div className="max-w-lg mx-auto p-4 flex flex-col h-auto min-h-full">
-                                            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col flex-grow">
+                                    /* הוספתי פס גלילה מובנה פה לכל שקף שמציג גם את כל אזור התחתית מבלי לחתוך אותו */
+                                    <div key={ex.id} className="w-full flex-shrink-0 h-full overflow-y-auto custom-scrollbar" dir="rtl">
+                                        <div className="max-w-lg mx-auto p-4 pb-16">
+                                            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden block">
                                                 
                                                 <div className="h-56 sm:h-64 relative shrink-0 bg-slate-100">
                                                     <img src={ex.img} alt={ex.name} className="w-full h-full object-cover" />
@@ -383,7 +384,7 @@
                                                     </a>
                                                 </div>
                                                 
-                                                <div className="p-6 flex-1 flex flex-col">
+                                                <div className="p-6">
                                                     {isStrength && ex.targetHe && (
                                                         <div className="mb-3">
                                                             <span className="inline-block bg-indigo-50 text-indigo-700 text-xs font-bold px-3 py-1.5 rounded-lg border border-indigo-100 shadow-sm">
@@ -395,7 +396,7 @@
                                                     <h3 className="text-2xl font-black text-slate-800 mb-2">{ex.name}</h3>
                                                     <p className="text-slate-600 text-base leading-relaxed mb-6">{ex.desc}</p>
                                                     
-                                                    <div className="mt-auto flex flex-col gap-3">
+                                                    <div className="flex flex-col gap-3">
                                                         <div className="text-blue-700 font-bold bg-blue-50 py-3.5 px-4 rounded-xl text-center border border-blue-200 flex items-center justify-center gap-2 text-lg shadow-sm">
                                                             {ex.duration}
                                                         </div>
@@ -417,7 +418,7 @@
                             </div>
                         </div>
 
-                        <div className="p-4 bg-white border-t border-slate-200 flex justify-between items-center shrink-0 safe-area-bottom">
+                        <div className="p-4 bg-white border-t border-slate-200 flex justify-between items-center shrink-0 safe-area-bottom shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] relative z-20">
                             <button 
                                 type="button"
                                 onClick={() => setCurrentExIndex(prev => Math.max(0, prev - 1))}
@@ -501,7 +502,7 @@
 
             return (
                 <div className="min-h-screen bg-slate-50 font-sans text-slate-900" dir="rtl">
-                    <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50 h-16">
+                    <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50 h-16 relative">
                         <div className="max-w-lg mx-auto px-4 h-full flex items-center">
                             {currentView !== 'home' ? (
                                 <button 
@@ -521,7 +522,7 @@
                         </div>
                     </nav>
 
-                    <main className="max-w-lg mx-auto relative">
+                    <main className="max-w-lg mx-auto relative h-[calc(100vh-4rem)]">
                         {currentView === 'home' && renderHomeMenu()}
                         {(currentView === 'cardio' || currentView === 'strength' || currentView === 'stretching') && renderExerciseSlider()}
                         {currentView === 'tracker' && renderCalendarView()}
