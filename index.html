@@ -31,7 +31,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useMemo } = React;
         
         const Icon = ({ name, size = 24, color = 'currentColor', strokeWidth = 2, className = '' }) => {
             const elRef = React.useRef(null);
@@ -57,7 +57,6 @@
         const Dumbbell = (props) => <Icon name="Dumbbell" {...props} />;
         const Activity = (props) => <Icon name="Activity" {...props} />;
         const StretchHorizontal = (props) => <Icon name="StretchHorizontal" {...props} />;
-        const ExternalLink = (props) => <Icon name="ExternalLink" {...props} />;
         const PlayCircle = (props) => <Icon name="PlayCircle" {...props} />;
         const ChevronRight = (props) => <Icon name="ChevronRight" {...props} />;
         const ChevronLeft = (props) => <Icon name="ChevronLeft" {...props} />;
@@ -66,8 +65,10 @@
         const HistoryIcon = (props) => <Icon name="History" {...props} />;
         const Target = (props) => <Icon name="Target" {...props} />;
         const AlertTriangle = (props) => <Icon name="AlertTriangle" {...props} />;
+        const Eye = (props) => <Icon name="Eye" {...props} />;
         const X = (props) => <Icon name="X" {...props} />;
 
+        // רכיב מעקב משקלים עם אפשרות מחיקה
         const WeightTrackerComponent = ({ exId, weightLogs, onAddLog, onDeleteLog }) => {
             const [dateInput, setDateInput] = useState(new Date().toISOString().split('T')[0]);
             const [weightInput, setWeightInput] = useState('');
@@ -91,7 +92,7 @@
                         <input 
                             type="number" 
                             step="0.5"
-                            placeholder="משקל (ק״ג)" 
+                            placeholder="משקל" 
                             value={weightInput}
                             onChange={(e) => setWeightInput(e.target.value)}
                             className="w-[100px] px-2 py-3 text-sm font-bold rounded-xl border border-slate-300 focus:outline-none focus:border-blue-500 bg-white text-center shadow-sm"
@@ -109,7 +110,7 @@
                     {logs.length > 0 && (
                         <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-inner mt-1">
                             <h4 className="font-bold text-slate-700 text-xs mb-2 flex items-center gap-1.5">
-                                <HistoryIcon size={14} /> היסטוריית התקדמות
+                                <HistoryIcon size={14} /> היסטוריית משקלים
                             </h4>
                             
                             <div className="max-h-32 overflow-y-auto pr-1 custom-scrollbar mb-3">
@@ -123,7 +124,6 @@
                                                     <button 
                                                         onClick={() => onDeleteLog(exId, i)}
                                                         className="text-red-400 hover:text-red-600 p-1 transition-colors"
-                                                        title="מחק רישום"
                                                     >
                                                         <X size={16} strokeWidth={3} />
                                                     </button>
@@ -150,7 +150,6 @@
                                             <span>{nextDate.toLocaleDateString('he-IL')}</span>
                                             <span className="text-orange-300">|</span>
                                             <span dir="ltr">{parseFloat(nextWeight)} kg</span>
-                                            <span className="text-[10px] text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded-full">+1.25kg</span>
                                         </div>
                                         <div className="flex items-start gap-2 text-xs text-orange-800 bg-white p-2 rounded-md leading-tight shadow-sm border border-orange-100">
                                             <AlertTriangle size={20} className="shrink-0 text-orange-500 mt-0.5" />
@@ -165,11 +164,96 @@
             );
         };
 
+        // לוח הבקרה הנסתר של אמא
+        const MomDashboard = ({ trackerState, weightLogs, onClose, routines }) => {
+            const currentMonth = new Date().getMonth() + 1;
+            const currentYear = new Date().getFullYear();
+            
+            const workoutsThisMonth = useMemo(() => {
+                return Object.keys(trackerState).filter(date => {
+                    const [y, m] = date.split('-');
+                    return parseInt(y) === currentYear && parseInt(m) === currentMonth && trackerState[date];
+                }).length;
+            }, [trackerState]);
+
+            const allExercises = routines.flatMap(r => r.exercises);
+
+            return (
+                <div className="fixed inset-0 bg-slate-900/95 z-[100] flex items-center justify-center p-4 animation-fade-in overflow-y-auto">
+                    <div className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+                        <div className="bg-slate-800 p-6 text-white flex justify-between items-center">
+                            <div>
+                                <h2 className="text-xl font-black flex items-center gap-2">
+                                    <Eye size={24} className="text-blue-400" />
+                                    מרכז בקרה דיסקרטי
+                                </h2>
+                                <p className="text-slate-400 text-xs">סיכום התקדמות ונתונים בזמן אמת</p>
+                            </div>
+                            <button onClick={onClose} className="bg-slate-700 p-2 rounded-full hover:bg-slate-600 transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
+                            {/* כרטיס התמדה */}
+                            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex items-center gap-4">
+                                <div className="bg-blue-600 text-white p-3 rounded-xl">
+                                    <Calendar size={28} />
+                                </div>
+                                <div>
+                                    <p className="text-blue-600 text-xs font-bold uppercase tracking-wider">התמדה החודש</p>
+                                    <p className="text-2xl font-black text-slate-800">{workoutsThisMonth} אימונים</p>
+                                </div>
+                            </div>
+
+                            {/* כרטיס משקלים אחרונים */}
+                            <div className="space-y-3">
+                                <h3 className="font-black text-slate-800 flex items-center gap-2 text-sm border-b pb-2 border-slate-100">
+                                    <Dumbbell size={18} className="text-orange-500" />
+                                    סטטוס משקלים נוכחי
+                                </h3>
+                                <div className="space-y-2">
+                                    {allExercises.map(ex => {
+                                        const logs = weightLogs[ex.id] || [];
+                                        const lastWeight = logs.length > 0 ? logs[0].weight : null;
+                                        
+                                        return (
+                                            <div key={ex.id} className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs font-bold text-slate-800">{ex.name}</span>
+                                                    <span className="text-[10px] text-slate-400">{ex.targetHe}</span>
+                                                </div>
+                                                <div className="text-right">
+                                                    {lastWeight ? (
+                                                        <span className="text-sm font-black text-blue-600" dir="ltr">{lastWeight} kg</span>
+                                                    ) : (
+                                                        <span className="text-[10px] text-slate-300">טרם הוזן</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-4 bg-slate-50 text-center border-t border-slate-100">
+                            <button onClick={onClose} className="text-slate-400 text-xs hover:text-slate-600 font-bold">סגור תצוגה נסתרת</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         function App() {
             const [currentView, setCurrentView] = useState('home'); 
             const [currentExIndex, setCurrentExIndex] = useState(0);
             const [activeRoutineIndex, setActiveRoutineIndex] = useState(0);
             const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
+            
+            // לוגיקה למצב אמא
+            const [momClicks, setMomClicks] = useState(0);
+            const [showMomDashboard, setShowMomDashboard] = useState(false);
 
             const [trackerState, setTrackerState] = useState(() => {
                 const saved = localStorage.getItem('fit2026_tracker');
@@ -184,6 +268,24 @@
             useEffect(() => { localStorage.setItem('fit2026_tracker', JSON.stringify(trackerState)); }, [trackerState]);
             useEffect(() => { localStorage.setItem('fit2026_weights', JSON.stringify(weightLogs)); }, [weightLogs]);
 
+            // איפוס קליקים אחרי זמן מה
+            useEffect(() => {
+                if (momClicks > 0) {
+                    const timer = setTimeout(() => setMomClicks(0), 2000);
+                    return () => clearTimeout(timer);
+                }
+            }, [momClicks]);
+
+            const handleLogoClick = () => {
+                const nextCount = momClicks + 1;
+                if (nextCount >= 5) {
+                    setShowMomDashboard(true);
+                    setMomClicks(0);
+                } else {
+                    setMomClicks(nextCount);
+                }
+            };
+
             const months = [
                 { year: 2026, month: 4, name: "מאי 2026" },
                 { year: 2026, month: 5, name: "יוני 2026" },
@@ -196,56 +298,44 @@
             const workoutPlan = {
                 cardio: {
                     id: 'cardio',
-                    title: "אירובי (20 דקות)",
-                    icon: <Activity className="w-6 h-6 text-blue-500" />,
                     exercises: [
                         { id: "c1", name: "חימום אירובי", desc: "הליכה בקצב בינוני-מהיר (5-6 קמ\"ש) להעלאת דופק.", duration: "5 דקות", img: "https://images.unsplash.com/photo-1576678927484-cc907957088c?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=treadmill+warm+up+walk" },
-                        { id: "c2", name: "אינטרוולים (ריצה / שיפוע)", desc: "דקה 1 של מאמץ גבוה (ריצה או שיפוע גבוה), 2 דקות התאוששות. חזור על כך 4 פעמים.", duration: "12 דקות", img: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=treadmill+hiit+workout" },
-                        { id: "c3", name: "שחרור אירובי", desc: "הליכה איטית להורדת הדופק חזרה למצב תקין ומתיחות קלות.", duration: "3 דקות", img: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=treadmill+cool+down" }
+                        { id: "c2", name: "אינטרוולים", desc: "דקה 1 של מאמץ גבוה, 2 דקות התאוששות. חזור 4 פעמים.", duration: "12 דקות", img: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=treadmill+hiit+workout" },
+                        { id: "c3", name: "שחרור אירובי", desc: "הליכה איטית להורדת הדופק ומתיחות קלות.", duration: "3 דקות", img: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=treadmill+cool+down" }
                     ]
                 },
                 strength: {
                     id: 'strength',
-                    title: "כוח (40 דקות)",
-                    icon: <Dumbbell className="w-6 h-6 text-orange-500" />,
                     routines: [
                         {
                             name: "תוכנית א' (שבועות 1-3, 7-9)",
                             exercises: [
-                                // סבב 1
                                 { id: "s1_1", targetHe: "חלק תחתון", targetEn: "Lower Body", name: "גובלט סקוואט", desc: "אחיזת משקולת קרוב לחזה וירידה לסקוואט.", duration: "3 סטים | 12 חזרות", img: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=goblet+squat" },
                                 { id: "s1_2", targetHe: "חלק עליון (חזה)", targetEn: "Upper Body", name: "לחיצת חזה על הרצפה", desc: "שכיבה על הגב ולחיצת משקולות למעלה.", duration: "3 סטים | 10 חזרות", img: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=dumbbell+floor+press" },
-                                { id: "s1_3", targetHe: "בטן", targetEn: "Core", name: "פלאנק (Plank)", desc: "החזקת הגוף ישר על האמות ללא שקיעת האגן.", duration: "3 סטים | 40 שניות", img: "https://images.unsplash.com/photo-1566241440091-ec10de8db2e1?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=plank+exercise" },
-                                // סבב 2
-                                { id: "s1_4", targetHe: "חלק תחתון", targetEn: "Lower Body", name: "מכרעים לאחור", desc: "צעד לאחור עם כפיפת ברכיים ל-90 מעלות.", duration: "3 סטים | 10 לכל רגל", img: "https://images.unsplash.com/photo-1588286840104-b43b67e0e7a2?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=reverse+lunges" },
-                                { id: "s1_5", targetHe: "חלק עליון (גב)", targetEn: "Upper Body", name: "חתירה בכפיפה", desc: "משיכת משקולות/גומיה לכיוון המותן בעמידה שפופה.", duration: "3 סטים | 12 חזרות", img: "https://images.unsplash.com/photo-1598289431512-b97b0917affc?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=bent+over+row" },
-                                { id: "s1_6", targetHe: "בטן", targetEn: "Core", name: "הרמת רגליים בשכיבה", desc: "שכיבה על הגב, הרמת שתי רגליים ישרות עד 90 מעלות וירידה איטית מבלי לגעת ברצפה.", duration: "3 סטים | 15 חזרות", img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=lying+leg+raises" },
-                                // סבב 3
-                                { id: "s1_7", targetHe: "חלק תחתון", targetEn: "Lower Body", name: "דדליפט רומני (RDL)", desc: "התכופפות מהאגן עם גב ישר וברכיים כפופות קלות.", duration: "3 סטים | 10 חזרות", img: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=romanian+deadlift+dumbbells" },
+                                { id: "s1_3", targetHe: "בטן", targetEn: "Core", name: "פלאנק (Plank)", desc: "החזקת הגוף ישר על האמות.", duration: "3 סטים | 40 שניות", img: "https://images.unsplash.com/photo-1566241440091-ec10de8db2e1?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=plank+exercise" },
+                                { id: "s1_4", targetHe: "חלק תחתון", targetEn: "Lower Body", name: "מכרעים לאחור", desc: "צעד לאחור עם כפיפת ברכיים.", duration: "3 סטים | 10 לכל רגל", img: "https://images.unsplash.com/photo-1588286840104-b43b67e0e7a2?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=reverse+lunges" },
+                                { id: "s1_5", targetHe: "חלק עליון (גב)", targetEn: "Upper Body", name: "חתירה בכפיפה", desc: "משיכת משקולות לכיוון המותן.", duration: "3 סטים | 12 חזרות", img: "https://images.unsplash.com/photo-1598289431512-b97b0917affc?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=bent+over+row" },
+                                { id: "s1_6", targetHe: "בטן", targetEn: "Core", name: "הרמת רגליים בשכיבה", desc: "שכיבה על הגב והרמת רגליים ישרות.", duration: "3 סטים | 15 חזרות", img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=lying+leg+raises" },
+                                { id: "s1_7", targetHe: "חלק תחתון", targetEn: "Lower Body", name: "דדליפט רומני (RDL)", desc: "התכופפות מהאגן עם גב ישר.", duration: "3 סטים | 10 חזרות", img: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=romanian+deadlift+dumbbells" },
                                 { id: "s1_8", targetHe: "חלק עליון (כתפיים)", targetEn: "Upper Body", name: "לחיצת כתפיים", desc: "דחיפת משקולות מעל הראש.", duration: "3 סטים | 10 חזרות", img: "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=dumbbell+shoulder+press" },
-                                { id: "s1_9", targetHe: "בטן", targetEn: "Core", name: "פשיטת גב (Superman)", desc: "שכיבה על הבטן והרמת ידיים ורגליים יחד.", duration: "3 סטים | 15 שניות", img: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=superman+exercise" },
-                                // סבב 4
+                                { id: "s1_9", targetHe: "בטן", targetEn: "Core", name: "פשיטת גב (Superman)", desc: "שכיבה על הבטן והרמת ידיים ורגליים.", duration: "3 סטים | 15 שניות", img: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=superman+exercise" },
                                 { id: "s1_10", targetHe: "חלק תחתון", targetEn: "Lower Body", name: "הרמת עקבים לתאומים", desc: "עמידה והתרוממות על קצות האצבעות.", duration: "3 סטים | 15 חזרות", img: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=calf+raises" },
-                                { id: "s1_11", targetHe: "חלק עליון (ידיים)", targetEn: "Upper Body", name: "כפיפת מרפקים", desc: "כפיפת מרפקים מבוקרת עם משקולות.", duration: "3 סטים | 12 חזרות", img: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=bicep+curls" },
-                                { id: "s1_12", targetHe: "בטן", targetEn: "Core", name: "כפיפות בטן (Crunches)", desc: "כפיפות בטן קצרות עם דגש על כיווץ הליבה.", duration: "3 סטים | 15 חזרות", img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=crunches" }
+                                { id: "s1_11", targetHe: "חלק עליון (ידיים)", targetEn: "Upper Body", name: "כפיפת מרפקים", desc: "כפיפת מרפקים מבוקרת.", duration: "3 סטים | 12 חזרות", img: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=bicep+curls" },
+                                { id: "s1_12", targetHe: "בטן", targetEn: "Core", name: "כפיפות בטן (Crunches)", desc: "כפיפות בטן קצרות.", duration: "3 סטים | 15 חזרות", img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=crunches" }
                             ]
                         },
                         {
                             name: "תוכנית ב' (שבועות 4-6, 10-12)",
                             exercises: [
-                                // סבב 1
-                                { id: "s2_1", targetHe: "חלק תחתון", targetEn: "Lower Body", name: "סקוואט בולגרי", desc: "רגל נחה מאחור על ספה ויורדים עם הקדמית.", duration: "3 סטים | 10 לכל רגל", img: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=bulgarian+split+squat" },
-                                { id: "s2_2", targetHe: "חלק עליון (חזה)", targetEn: "Upper Body", name: "שכיבות סמיכה בשיפוע", desc: "ידיים על ספה/כיסא, עובד חזק על החזה.", duration: "3 סטים | 12 חזרות", img: "https://images.unsplash.com/photo-1598971639058-fab3c3109a00?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=incline+push+ups" },
-                                { id: "s2_3", targetHe: "בטן", targetEn: "Core", name: "החזקת גוף חלול", desc: "שכיבה על הגב, הרמת שכמות ורגליים באוויר.", duration: "3 סטים | 30 שניות", img: "https://images.unsplash.com/photo-1566241440091-ec10de8db2e1?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=hollow+body+hold" },
-                                // סבב 2
+                                { id: "s2_1", targetHe: "חלק תחתון", targetEn: "Lower Body", name: "סקוואט בולגרי", desc: "רגל על ספה ויורדים עם הקדמית.", duration: "3 סטים | 10 לכל רגל", img: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=bulgarian+split+squat" },
+                                { id: "s2_2", targetHe: "חלק עליון (חזה)", targetEn: "Upper Body", name: "שכיבות סמיכה בשיפוע", desc: "ידיים על ספה, עובד חזק על החזה.", duration: "3 סטים | 12 חזרות", img: "https://images.unsplash.com/photo-1598971639058-fab3c3109a00?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=incline+push+ups" },
+                                { id: "s2_3", targetHe: "בטן", targetEn: "Core", name: "החזקת גוף חלול", desc: "שכיבה על הגב, הרמת שכמות ורגליים.", duration: "3 סטים | 30 שניות", img: "https://images.unsplash.com/photo-1566241440091-ec10de8db2e1?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=hollow+body+hold" },
                                 { id: "s2_4", targetHe: "חלק תחתון", targetEn: "Lower Body", name: "גשר ישבן", desc: "שכיבה על הגב, ברכיים כפופות והרמת אגן.", duration: "3 סטים | 15 חזרות", img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=glute+bridge" },
-                                { id: "s2_5", targetHe: "חלק עליון (גב)", targetEn: "Upper Body", name: "חתירה יד-יד", desc: "משיכת המשקולת ביד אחת בהישענות על ספה.", duration: "3 סטים | 10 לכל יד", img: "https://images.unsplash.com/photo-1598289431512-b97b0917affc?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=single+arm+dumbbell+row" },
-                                { id: "s2_6", targetHe: "בטן", targetEn: "Core", name: "רושן טוויסט", desc: "ישיבה, סיבוב הגו מצד לצד עם משקולת.", duration: "3 סטים | 20 חזרות", img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=russian+twist" },
-                                // סבב 3
+                                { id: "s2_5", targetHe: "חלק עליון (גב)", targetEn: "Upper Body", name: "חתירה יד-יד", desc: "משיכת משקולת ביד אחת.", duration: "3 סטים | 10 לכל יד", img: "https://images.unsplash.com/photo-1598289431512-b97b0917affc?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=single+arm+dumbbell+row" },
+                                { id: "s2_6", targetHe: "בטן", targetEn: "Core", name: "רושן טוויסט", desc: "ישיבה, סיבוב הגו מצד לצד.", duration: "3 סטים | 20 חזרות", img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=russian+twist" },
                                 { id: "s2_7", targetHe: "חלק תחתון", targetEn: "Lower Body", name: "סקוואט סטטי (Wall Sit)", desc: "ישיבה באוויר כשהגב נשען על קיר.", duration: "3 סטים | 45 שניות", img: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=wall+sit" },
                                 { id: "s2_8", targetHe: "חלק עליון (כתפיים)", targetEn: "Upper Body", name: "הרחקת כתפיים", desc: "הרמת משקולות קלות לצדדים.", duration: "3 סטים | 12 חזרות", img: "https://images.unsplash.com/photo-1581009137042-c552e48ce528?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=dumbbell+lateral+raises" },
-                                { id: "s2_9", targetHe: "בטן", targetEn: "Core", name: "פלאנק עם נגיעה בכתף", desc: "מצב פלאנק גבוה, נגיעה בכתף הנגדית עם היד לסירוגין.", duration: "3 סטים | 20 נגיעות", img: "https://images.unsplash.com/photo-1566241440091-ec10de8db2e1?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=plank+shoulder+taps" },
-                                // סבב 4
+                                { id: "s2_9", targetHe: "בטן", targetEn: "Core", name: "פלאנק עם נגיעה בכתף", desc: "מצב פלאנק גבוה, נגיעה בכתף נגדית.", duration: "3 סטים | 20 נגיעות", img: "https://images.unsplash.com/photo-1566241440091-ec10de8db2e1?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=plank+shoulder+taps" },
                                 { id: "s2_10", targetHe: "חלק תחתון", targetEn: "Lower Body", name: "הרחקת ירך בשכיבה", desc: "שכיבה על הצד והרמת הרגל העליונה.", duration: "3 סטים | 15 לכל רגל", img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=lying+hip+abduction" },
                                 { id: "s2_11", targetHe: "חלק עליון (ידיים)", targetEn: "Upper Body", name: "מקבילים על כיסא", desc: "הישענות לאחור על כיסא וכפיפת מרפקים.", duration: "3 סטים | 10 חזרות", img: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=bench+dips" },
                                 { id: "s2_12", targetHe: "בטן", targetEn: "Core", name: "אופניים (Bicycle Crunches)", desc: "קירוב מרפק לברך נגדית בשכיבה.", duration: "3 סטים | 20 חזרות", img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=bicycle+crunches" }
@@ -255,19 +345,9 @@
                 },
                 stretching: {
                     id: 'stretching',
-                    title: "מתיחות (10 דקות)",
-                    icon: <StretchHorizontal className="w-6 h-6 text-green-500" />,
                     exercises: [
-                        { id: "st1", name: "1. מתיחת חזה במשקוף", desc: "הנחת אמות על משקוף דלת והישענות קלה קדימה.", duration: "30 שניות", img: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=doorway+chest+stretch" },
-                        { id: "st2", name: "2. מתיחת כתף בהצלבה", desc: "העברת יד ישרה מעבר לחזה ומשיכתה פנימה.", duration: "30 שנ' לצד", img: "https://images.unsplash.com/photo-1599058917212-d750089bc07e?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=cross+body+shoulder+stretch" },
-                        { id: "st3", name: "3. מתיחת תלת ראשי מעל הראש", desc: "כפיפת מרפק אל מאחורי העורף ומשיכה עם יד שניה.", duration: "30 שנ' לצד", img: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=overhead+triceps+stretch" },
-                        { id: "st4", name: "4. מתיחת צוואר עדינה", desc: "הטיית הראש הצידה אל כיוון הכתף, כתפיים למטה.", duration: "20 שנ' לצד", img: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=gentle+neck+stretch" },
-                        { id: "st5", name: "5. תנוחת העובר", desc: "ישיבה על העקבים, ידיים קדימה והורדת הראש.", duration: "45 שניות", img: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=childs+pose+stretch" },
-                        { id: "st6", name: "6. מתיחת ארבע ראשי עמידה", desc: "תפיסת קרסול ומשיכת העקב לישבן (להחזיק קיר לאיזון).", duration: "30 שנ' לצד", img: "https://images.unsplash.com/photo-1588286840104-b43b67e0e7a2?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=standing+quad+stretch" },
-                        { id: "st7", name: "7. מתיחת המסטרינג ישיבה", desc: "ישיבה, רגל ישרה ורגל כפופה, רכינה לפנים לאצבעות.", duration: "30 שנ' לרגל", img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=seated+hamstring+stretch" },
-                        { id: "st8", name: "8. מתיחת שוקיים על קיר", desc: "ידיים על קיר, רגל לאחור ישרה עקב צמוד לרצפה.", duration: "30 שנ' לצד", img: "https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=wall+calf+stretch" },
-                        { id: "st9", name: "9. מתיחת ישבן צורת 4", desc: "שכיבה, קרסול ימין על ברך שמאל, משיכת ירך לחזה.", duration: "30 שנ' לצד", img: "https://images.unsplash.com/photo-1517130038641-a774d04afb3c?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=figure+4+stretch" },
-                        { id: "st10", name: "10. מתיחת כופפי ירך בכריעה", desc: "ברך על הרצפה, רגל שניה ב-90 מעלות, דחיפת אגן קדימה.", duration: "30 שנ' לצד", img: "https://images.unsplash.com/photo-1574680088814-c9e8a10d8a4d?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=kneeling+hip+flexor+stretch" }
+                        { id: "st1", name: "1. מתיחת חזה במשקוף", desc: "הנחת אמות על משקוף דלת והישענות קדימה.", duration: "30 שניות", img: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=doorway+chest+stretch" },
+                        { id: "st5", name: "5. תנוחת העובר", desc: "ישיבה על העקבים, ידיים קדימה והורדת הראש.", duration: "45 שניות", img: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=childs+pose+stretch" }
                     ]
                 }
             };
@@ -291,7 +371,6 @@
                 setWeightLogs(prev => {
                     const currentLogs = prev[exId] || [];
                     const newLogs = [{ date, weight: parseFloat(weight) }, ...currentLogs];
-                    // המערכת כבר ממיינת לפי תאריך ב-latest log logic, אבל פה נשמור על סדר כרונולוגי הפוך להצגה
                     newLogs.sort((a, b) => new Date(b.date) - new Date(a.date));
                     return { ...prev, [exId]: newLogs };
                 });
@@ -309,14 +388,14 @@
                 <div className="max-w-md mx-auto p-4 space-y-4 animation-fade-in pb-20">
                     <header className="mb-6 mt-2 text-center">
                         <h1 className="text-3xl font-black text-slate-800 mb-1">אימון 2026</h1>
-                        <p className="text-slate-500 font-medium">בחר את החלק שתרצה לבצע כעת</p>
+                        <p className="text-slate-500 font-medium italic">"התקדמות היא לא מקרה, היא החלטה"</p>
                     </header>
 
                     <button type="button" onClick={() => startWorkout('cardio')} className="w-full bg-white p-5 rounded-3xl shadow-sm border border-slate-100 hover:border-blue-300 hover:shadow-md transition-all flex items-center gap-4 text-right">
                         <div className="bg-blue-50 p-4 rounded-2xl text-blue-500"><Activity size={32}/></div>
                         <div className="flex-1">
                             <h2 className="text-lg font-bold text-slate-800">אירובי</h2>
-                            <p className="text-sm text-slate-500">20 דק' • 3 שלבים בלבד</p>
+                            <p className="text-sm text-slate-500">20 דק' • 3 שלבים</p>
                         </div>
                         <ChevronLeft className="text-slate-300" />
                     </button>
@@ -326,7 +405,7 @@
                             <div className="bg-orange-50 p-4 rounded-2xl text-orange-500"><Dumbbell size={32}/></div>
                             <div className="flex-1 text-right">
                                 <h2 className="text-lg font-bold text-slate-800">אימון כוח</h2>
-                                <p className="text-sm text-slate-500">40 דק' • סבבי תחתון ➡️ עליון ➡️ בטן</p>
+                                <p className="text-sm text-slate-500">40 דק' • סבבים שלמים</p>
                             </div>
                             <ChevronLeft className="text-slate-300" />
                         </div>
@@ -338,7 +417,7 @@
                             ))}
                         </div>
                         <button type="button" onClick={() => startWorkout('strength')} className="w-full bg-orange-100 text-orange-700 font-bold py-3 rounded-xl hover:bg-orange-200 transition-colors">
-                            התחל אימון כוח
+                            התחל אימון
                         </button>
                     </div>
 
@@ -346,7 +425,7 @@
                         <div className="bg-green-50 p-4 rounded-2xl text-green-500"><StretchHorizontal size={32}/></div>
                         <div className="flex-1">
                             <h2 className="text-lg font-bold text-slate-800">מתיחות</h2>
-                            <p className="text-sm text-slate-500">10 דק' • שחרור וגמישות</p>
+                            <p className="text-sm text-slate-500">10 דק' • שחרור</p>
                         </div>
                         <ChevronLeft className="text-slate-300" />
                     </button>
@@ -355,7 +434,7 @@
                         <div className="bg-slate-700 p-4 rounded-2xl text-purple-400"><Calendar size={32}/></div>
                         <div className="flex-1">
                             <h2 className="text-lg font-bold">מעקב התמדה</h2>
-                            <p className="text-sm text-slate-400">יומן חודשי אישי</p>
+                            <p className="text-sm text-slate-400">היומן האישי שלי</p>
                         </div>
                         <ChevronLeft className="text-slate-500" />
                     </button>
@@ -385,39 +464,31 @@
                         </div>
 
                         <div className="flex-1 relative overflow-hidden" dir="ltr">
-                            <div 
-                                className="flex h-full transition-transform duration-300 ease-out"
-                                style={{ transform: `translateX(-${currentExIndex * 100}%)` }} 
-                            >
+                            <div className="flex h-full transition-transform duration-300 ease-out" style={{ transform: `translateX(-${currentExIndex * 100}%)` }}>
                                 {exercises.map((ex, index) => (
                                     <div key={ex.id} className="w-full flex-shrink-0 h-full overflow-y-auto custom-scrollbar" dir="rtl">
                                         <div className="max-w-lg mx-auto p-4 pb-16">
                                             <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden block">
-                                                
                                                 <div className="h-56 sm:h-64 relative shrink-0 bg-slate-100">
                                                     <img src={ex.img} alt={ex.name} className="w-full h-full object-cover" />
                                                     <a href={ex.link} target="_blank" rel="noreferrer" className="absolute inset-0 bg-black/20 flex items-center justify-center hover:bg-black/40 transition-colors">
                                                         <PlayCircle className="text-white" size={60} strokeWidth={1.5} />
                                                     </a>
                                                 </div>
-                                                
                                                 <div className="p-6">
                                                     {isStrength && ex.targetHe && (
                                                         <div className="mb-3">
                                                             <span className="inline-block bg-indigo-50 text-indigo-700 text-xs font-bold px-3 py-1.5 rounded-lg border border-indigo-100 shadow-sm">
-                                                                שריר: {ex.targetHe} | <span className="font-sans" dir="ltr">{ex.targetEn}</span>
+                                                                {ex.targetHe}
                                                             </span>
                                                         </div>
                                                     )}
-                                                    
                                                     <h3 className="text-2xl font-black text-slate-800 mb-2">{ex.name}</h3>
                                                     <p className="text-slate-600 text-base leading-relaxed mb-6">{ex.desc}</p>
-                                                    
                                                     <div className="flex flex-col gap-3">
                                                         <div className="text-blue-700 font-bold bg-blue-50 py-3.5 px-4 rounded-xl text-center border border-blue-200 flex items-center justify-center gap-2 text-lg shadow-sm">
                                                             {ex.duration}
                                                         </div>
-                                                        
                                                         {isStrength && (
                                                             <WeightTrackerComponent 
                                                                 exId={ex.id}
@@ -428,7 +499,6 @@
                                                         )}
                                                     </div>
                                                 </div>
-
                                             </div>
                                         </div>
                                     </div>
@@ -436,32 +506,12 @@
                             </div>
                         </div>
 
-                        <div className="p-4 bg-white border-t border-slate-200 flex justify-between items-center shrink-0 safe-area-bottom shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] relative z-20">
-                            <button 
-                                type="button"
-                                onClick={() => setCurrentExIndex(prev => Math.max(0, prev - 1))}
-                                disabled={currentExIndex === 0}
-                                className="px-5 py-3.5 bg-slate-100 text-slate-600 rounded-2xl disabled:opacity-30 flex items-center gap-2 font-bold transition-all active:scale-95"
-                            >
-                                <ChevronRight size={20} /> הקודם
-                            </button>
-                            
+                        <div className="p-4 bg-white border-t border-slate-200 flex justify-between items-center shrink-0 safe-area-bottom shadow-sm relative z-20">
+                            <button onClick={() => setCurrentExIndex(prev => Math.max(0, prev - 1))} disabled={currentExIndex === 0} className="px-5 py-3.5 bg-slate-100 text-slate-600 rounded-2xl disabled:opacity-30 flex items-center gap-2 font-bold active:scale-95 transition-all"><ChevronRight size={20} /> הקודם</button>
                             {currentExIndex < exercises.length - 1 ? (
-                                <button 
-                                    type="button"
-                                    onClick={() => setCurrentExIndex(prev => Math.min(exercises.length - 1, prev + 1))}
-                                    className="px-8 py-3.5 bg-blue-600 text-white rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-blue-200 transition-all active:scale-95"
-                                >
-                                    הבא <ChevronLeft size={20} />
-                                </button>
+                                <button onClick={() => setCurrentExIndex(prev => Math.min(exercises.length - 1, prev + 1))} className="px-8 py-3.5 bg-blue-600 text-white rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-blue-200 active:scale-95 transition-all">הבא <ChevronLeft size={20} /></button>
                             ) : (
-                                <button 
-                                    type="button"
-                                    onClick={handleBackToHome}
-                                    className="px-8 py-3.5 bg-green-500 text-white rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-green-200 transition-all active:scale-95 animate-pulse"
-                                >
-                                    סיום אימון! <Activity size={20} />
-                                </button>
+                                <button onClick={handleBackToHome} className="px-8 py-3.5 bg-green-500 text-white rounded-2xl font-bold flex items-center gap-2 shadow-lg active:scale-95 transition-all animate-pulse">סיום אימון!</button>
                             )}
                         </div>
                     </div>
@@ -474,27 +524,25 @@
                 const firstDay = new Date(monthInfo.year, monthInfo.month, 1).getDay();
                 const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
                 const blanks = Array.from({ length: firstDay }, (_, i) => i);
-                const weekDays = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
 
                 return (
                     <div className="animation-fade-in flex flex-col items-center p-4 pb-20">
                         <header className="mb-8 mt-4 text-center">
-                            <h1 className="text-3xl font-black text-slate-800 mb-2">מעקב התמדה אישי</h1>
-                            <p className="text-slate-500 font-medium max-w-md mx-auto">לחץ על כל יום שבו השלמת אימון.</p>
+                            <h1 className="text-3xl font-black text-slate-800 mb-2">מעקב התמדה</h1>
+                            <p className="text-slate-500 font-medium">סמן ימי אימון שהושלמו</p>
                         </header>
 
                         <div className="flex items-center justify-between w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-100 p-2 mb-6">
-                            <button type="button" onClick={() => setCurrentMonthIndex(Math.min(months.length - 1, currentMonthIndex + 1))} disabled={currentMonthIndex === months.length - 1} className="p-3 text-slate-400 hover:text-blue-600 disabled:opacity-30"><ChevronRight size={24} /></button>
+                            <button onClick={() => setCurrentMonthIndex(Math.min(months.length - 1, currentMonthIndex + 1))} disabled={currentMonthIndex === months.length - 1} className="p-3 text-slate-400 hover:text-blue-600 disabled:opacity-30"><ChevronRight size={24} /></button>
                             <div className="flex flex-col items-center">
-                                <span className="text-xs font-bold tracking-widest text-blue-500 uppercase">חודש {currentMonthIndex + 1} מתוך 6</span>
                                 <span className="text-lg font-black text-slate-800">{monthInfo.name}</span>
                             </div>
-                            <button type="button" onClick={() => setCurrentMonthIndex(Math.max(0, currentMonthIndex - 1))} disabled={currentMonthIndex === 0} className="p-3 text-slate-400 hover:text-blue-600 disabled:opacity-30"><ChevronLeft size={24} /></button>
+                            <button onClick={() => setCurrentMonthIndex(Math.max(0, currentMonthIndex - 1))} disabled={currentMonthIndex === 0} className="p-3 text-slate-400 hover:text-blue-600 disabled:opacity-30"><ChevronLeft size={24} /></button>
                         </div>
 
                         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-4 sm:p-6 w-full max-w-md mx-auto">
                             <div className="grid grid-cols-7 gap-2 mb-4 text-center text-slate-400 font-bold text-sm">
-                                {weekDays.map(day => <div key={day}>{day}</div>)}
+                                {['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'].map(day => <div key={day}>{day}</div>)}
                             </div>
                             <div className="grid grid-cols-7 gap-2 sm:gap-3">
                                 {blanks.map(blank => <div key={`blank-${blank}`} className="p-2"></div>)}
@@ -502,14 +550,7 @@
                                     const dateStr = `${monthInfo.year}-${String(monthInfo.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                                     const isCompleted = trackerState[dateStr];
                                     return (
-                                        <button
-                                            type="button"
-                                            key={dateStr}
-                                            onClick={() => toggleDay(dateStr)}
-                                            className={`aspect-square rounded-xl flex items-center justify-center font-bold text-base transition-all duration-200 ${isCompleted ? 'bg-blue-600 text-white shadow-md shadow-blue-200 scale-105' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-100'}`}
-                                        >
-                                            {day}
-                                        </button>
+                                        <button key={dateStr} onClick={() => toggleDay(dateStr)} className={`aspect-square rounded-xl flex items-center justify-center font-bold text-base transition-all ${isCompleted ? 'bg-blue-600 text-white shadow-md scale-105' : 'bg-slate-50 text-slate-600 border border-slate-100'}`}>{day}</button>
                                     );
                                 })}
                             </div>
@@ -520,19 +561,24 @@
 
             return (
                 <div className="min-h-screen bg-slate-50 font-sans text-slate-900" dir="rtl">
-                    <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50 h-16 relative">
+                    {showMomDashboard && (
+                        <MomDashboard 
+                            trackerState={trackerState} 
+                            weightLogs={weightLogs} 
+                            onClose={() => setShowMomDashboard(false)} 
+                            routines={workoutPlan.strength.routines}
+                        />
+                    )}
+
+                    <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50 h-16">
                         <div className="max-w-lg mx-auto px-4 h-full flex items-center">
                             {currentView !== 'home' ? (
-                                <button 
-                                    type="button"
-                                    onClick={handleBackToHome} 
-                                    className="flex items-center gap-2 text-blue-600 font-bold hover:bg-blue-50 py-2 px-3 rounded-xl transition-colors -mr-3"
-                                >
+                                <button onClick={handleBackToHome} className="flex items-center gap-2 text-blue-600 font-bold hover:bg-blue-50 py-2 px-3 rounded-xl transition-colors -mr-3">
                                     <ArrowRight size={22} strokeWidth={2.5} />
-                                    <span>חזור לתפריט</span>
+                                    <span>חזור</span>
                                 </button>
                             ) : (
-                                <div className="flex items-center gap-2">
+                                <div onClick={handleLogoClick} className="flex items-center gap-2 cursor-default select-none active:scale-95 transition-transform">
                                     <div className="bg-blue-600 text-white p-1.5 rounded-lg"><Activity size={22} /></div>
                                     <span className="font-black text-xl tracking-tight text-slate-800">Fit<span className="text-blue-600">2026</span></span>
                                 </div>
