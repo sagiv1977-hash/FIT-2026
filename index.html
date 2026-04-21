@@ -67,7 +67,6 @@
         const Target = (props) => <Icon name="Target" {...props} />;
         const AlertTriangle = (props) => <Icon name="AlertTriangle" {...props} />;
 
-        // שורת מעקב משקלים - עכשיו מוטמעת ישירות מתחת לשורת החזרות!
         const WeightTrackerComponent = ({ exId, weightLogs, onAddLog }) => {
             const [dateInput, setDateInput] = useState(new Date().toISOString().split('T')[0]);
             const [weightInput, setWeightInput] = useState('');
@@ -80,8 +79,7 @@
             };
 
             return (
-                <div className="flex flex-col w-full gap-3">
-                    {/* שורת הזנה: תאריך, משקל, הוספה */}
+                <div className="flex flex-col w-full gap-3 pb-8">
                     <div className="flex items-center gap-2 w-full">
                         <input 
                             type="date" 
@@ -108,7 +106,6 @@
                         </button>
                     </div>
 
-                    {/* היסטוריה ויעד (מופיע רק אם יש נתונים) */}
                     {logs.length > 0 && (
                         <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-inner mt-1">
                             <h4 className="font-bold text-slate-700 text-xs mb-2 flex items-center gap-1.5">
@@ -128,7 +125,6 @@
                                 </table>
                             </div>
                             
-                            {/* מודול יעד מתקדם חכם */}
                             {(() => {
                                 const latestLog = logs[0];
                                 if (!latestLog || isNaN(latestLog.weight)) return null;
@@ -214,7 +210,7 @@
                                 // סבב 2
                                 { id: "s1_4", targetHe: "חלק תחתון", targetEn: "Lower Body", name: "מכרעים לאחור", desc: "צעד לאחור עם כפיפת ברכיים ל-90 מעלות.", duration: "3 סטים | 10 לכל רגל", img: "https://images.unsplash.com/photo-1588286840104-b43b67e0e7a2?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=reverse+lunges" },
                                 { id: "s1_5", targetHe: "חלק עליון (גב)", targetEn: "Upper Body", name: "חתירה בכפיפה", desc: "משיכת משקולות/גומיה לכיוון המותן בעמידה שפופה.", duration: "3 סטים | 12 חזרות", img: "https://images.unsplash.com/photo-1598289431512-b97b0917affc?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=bent+over+row" },
-                                { id: "s1_6", targetHe: "בטן", targetEn: "Core", name: "חרק מת (Deadbug)", desc: "שכיבה על הגב, יישור יד ורגל נגדית.", duration: "3 סטים | 10 לכל צד", img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=deadbug+exercise" },
+                                { id: "s1_6", targetHe: "בטן", targetEn: "Core", name: "הרמת רגליים בשכיבה", desc: "שכיבה על הגב והרמת שתי רגליים ישרות עד 90 מעלות וירידה איטית.", duration: "3 סטים | 15 חזרות", img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=lying+leg+raises" },
                                 // סבב 3
                                 { id: "s1_7", targetHe: "חלק תחתון", targetEn: "Lower Body", name: "דדליפט רומני (RDL)", desc: "התכופפות מהאגן עם גב ישר וברכיים כפופות קלות.", duration: "3 סטים | 10 חזרות", img: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=romanian+deadlift+dumbbells" },
                                 { id: "s1_8", targetHe: "חלק עליון (כתפיים)", targetEn: "Upper Body", name: "לחיצת כתפיים", desc: "דחיפת משקולות מעל הראש.", duration: "3 סטים | 10 חזרות", img: "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=dumbbell+shoulder+press" },
@@ -239,7 +235,7 @@
                                 // סבב 3
                                 { id: "s2_7", targetHe: "חלק תחתון", targetEn: "Lower Body", name: "סקוואט סטטי (Wall Sit)", desc: "ישיבה באוויר כשהגב נשען על קיר.", duration: "3 סטים | 45 שניות", img: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=wall+sit" },
                                 { id: "s2_8", targetHe: "חלק עליון (כתפיים)", targetEn: "Upper Body", name: "הרחקת כתפיים", desc: "הרמת משקולות קלות לצדדים.", duration: "3 סטים | 12 חזרות", img: "https://images.unsplash.com/photo-1581009137042-c552e48ce528?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=dumbbell+lateral+raises" },
-                                { id: "s2_9", targetHe: "בטן", targetEn: "Core", name: "פלאנק צדי (Side Plank)", desc: "הישענות על אמה אחת והרמת האגן.", duration: "3 סטים | 30 שניות לצד", img: "https://images.unsplash.com/photo-1566241440091-ec10de8db2e1?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=side+plank" },
+                                { id: "s2_9", targetHe: "בטן", targetEn: "Core", name: "פלאנק עם נגיעה בכתף", desc: "מצב פלאנק גבוה, נגיעה בכתף הנגדית עם היד לסירוגין.", duration: "3 סטים | 20 נגיעות", img: "https://images.unsplash.com/photo-1566241440091-ec10de8db2e1?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=plank+shoulder+taps" },
                                 // סבב 4
                                 { id: "s2_10", targetHe: "חלק תחתון", targetEn: "Lower Body", name: "הרחקת ירך בשכיבה", desc: "שכיבה על הצד והרמת הרגל העליונה.", duration: "3 סטים | 15 לכל רגל", img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=lying+hip+abduction" },
                                 { id: "s2_11", targetHe: "חלק עליון (ידיים)", targetEn: "Upper Body", name: "מקבילים על כיסא", desc: "הישענות לאחור על כיסא וכפיפת מרפקים.", duration: "3 סטים | 10 חזרות", img: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=600&q=80", link: "https://www.youtube.com/results?search_query=bench+dips" },
@@ -376,9 +372,9 @@
                                 style={{ transform: `translateX(-${currentExIndex * 100}%)` }} 
                             >
                                 {exercises.map((ex, index) => (
-                                    <div key={ex.id} className="w-full flex-shrink-0 h-full overflow-y-auto hide-scroll pb-6" dir="rtl">
-                                        <div className="max-w-lg mx-auto p-4 h-full flex flex-col">
-                                            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col min-h-full">
+                                    <div key={ex.id} className="w-full flex-shrink-0 h-full overflow-y-auto hide-scroll pb-16" dir="rtl">
+                                        <div className="max-w-lg mx-auto p-4 flex flex-col h-auto min-h-full">
+                                            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col flex-grow">
                                                 
                                                 <div className="h-56 sm:h-64 relative shrink-0 bg-slate-100">
                                                     <img src={ex.img} alt={ex.name} className="w-full h-full object-cover" />
@@ -399,14 +395,11 @@
                                                     <h3 className="text-2xl font-black text-slate-800 mb-2">{ex.name}</h3>
                                                     <p className="text-slate-600 text-base leading-relaxed mb-6">{ex.desc}</p>
                                                     
-                                                    {/* קופסת הנתונים של התרגיל: חזרות + משקל */}
                                                     <div className="mt-auto flex flex-col gap-3">
-                                                        {/* שורת חזרות */}
                                                         <div className="text-blue-700 font-bold bg-blue-50 py-3.5 px-4 rounded-xl text-center border border-blue-200 flex items-center justify-center gap-2 text-lg shadow-sm">
                                                             {ex.duration}
                                                         </div>
                                                         
-                                                        {/* שורת משקלים (תמיד גלויה באימוני כוח) */}
                                                         {isStrength && (
                                                             <WeightTrackerComponent 
                                                                 exId={ex.id}
